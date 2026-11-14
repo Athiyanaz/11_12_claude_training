@@ -115,6 +115,40 @@
       g.lineTo(W, H); g.closePath(); g.fill();
     }
 
+    // colourful reef: bright corals, anemones, starfish and urchins on the sea floor
+    // sandy floor to anchor everything
+    const sand = g.createLinearGradient(0, H * .9, 0, H);
+    sand.addColorStop(0, '#d8bf86'); sand.addColorStop(1, '#8c8f86');
+    g.fillStyle = sand; g.beginPath(); g.moveTo(0, H);
+    for (let x = 0; x <= W + 20; x += 20) g.lineTo(x, H * .935 - Math.sin(x * .006 + 2) * H * .012 - Math.sin(x * .017) * 4);
+    g.lineTo(W, H); g.closePath(); g.fill();
+    const PAL = ['#ff5d8f', '#ff8a3d', '#ffd23f', '#b48cff', '#4de3c1', '#ff6b6b', '#7bd9ff', '#c6f26b'];
+    const dr = mulberry(99), unit = Math.min(W, H);
+    const items = [];
+    const count = Math.max(10, Math.round(W / 85));
+    for (let i = 0; i < count; i++) {
+      items.push({ x: (i + dr() * .9) / count * (W + 60) - 30, y: H * (.935 + dr() * .06),
+                   h: unit * (.07 + dr() * .11), col: PAL[Math.floor(dr() * PAL.length)], kind: Math.floor(dr() * 7) });
+    }
+    items.sort((a, b) => a.y - b.y);
+    for (const it of items) {
+      g.save();
+      g.globalAlpha = .9;
+      g.fillStyle = it.col; g.strokeStyle = it.col; g.lineCap = 'round';
+      const { x, y, h } = it;
+      if (it.kind === 0) branchCoral(g, x, y, h, dr);
+      else if (it.kind === 1) fanCoral(g, x, y, h, dr);
+      else if (it.kind === 2) tubeCoral(g, x, y, h, dr);
+      else if (it.kind === 3) brainCoral(g, x, y, h * .6);
+      else if (it.kind === 4) anemone(g, x, y, h * .8, dr);
+      else if (it.kind === 5) starfish(g, x, y - h * .1, h * .35, it.col);
+      else urchin(g, x, y - h * .1, h * .28, dr);
+      // soft highlight so the shapes read as illustrated, not flat
+      g.globalAlpha *= .35; g.fillStyle = '#fff';
+      g.beginPath(); g.ellipse(x - h * .1, y - h * .25, h * .06, h * .12, .4, 0, 7); g.fill();
+      g.restore();
+    }
+
     // little postcard border
     g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 3;
     const m = Math.max(8, Math.min(W, H) * .012);
@@ -150,6 +184,74 @@
       g.moveTo(tx - w / 2, y); g.lineTo(tx - w / 2, y - th);
       g.arc(tx, y - th, w / 2, Math.PI, 0); g.lineTo(tx + w / 2, y);
       g.closePath(); g.fill();
+    }
+  }
+
+  function brainCoral(g, x, y, r) {
+    g.beginPath(); g.arc(x, y, r, Math.PI, 0); g.closePath(); g.fill();
+    g.save(); g.strokeStyle = 'rgba(0,0,0,.18)'; g.lineWidth = Math.max(1.5, r * .08);
+    for (let i = 1; i < 4; i++) { g.beginPath(); g.arc(x, y, r * i / 4, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); }
+    g.restore();
+  }
+  function anemone(g, x, y, h, r) {
+    g.lineWidth = Math.max(3, h * .07);
+    for (let i = 0; i < 11; i++) {
+      const a = -Math.PI / 2 + (i - 5) * .22, len = h * (.7 + r() * .4);
+      g.beginPath(); g.moveTo(x + (i - 5) * h * .05, y);
+      g.quadraticCurveTo(x + Math.sin(a) * len * .5 + (r() - .5) * h * .3, y - len * .6, x + Math.sin(a) * len, y - Math.cos(a) * len);
+      g.stroke();
+      g.beginPath(); g.arc(x + Math.sin(a) * len, y - Math.cos(a) * len, g.lineWidth * .8, 0, 7); g.fill();
+    }
+    g.beginPath(); g.ellipse(x, y, h * .28, h * .12, 0, 0, 7); g.fill();
+  }
+  function starfish(g, x, y, r, col) {
+    g.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r;
+      g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+    }
+    g.closePath(); g.fill(); g.lineJoin = 'round'; g.lineWidth = r * .25; g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.55)';
+    for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * Math.PI * .4; g.beginPath(); g.arc(x + Math.cos(a) * r * .5, y + Math.sin(a) * r * .5, r * .07, 0, 7); g.fill(); }
+  }
+  function urchin(g, x, y, r, rr) {
+    g.lineWidth = Math.max(2, r * .12);
+    for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * r * 1.6, y + Math.sin(a) * r * 1.6); g.stroke(); }
+    g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+  }
+
+  // ---------- swaying seaweed & kelp (animated) ----------
+  const weeds = [];
+  const WEED_COLS = [['#1fae6b', '#7ae582'], ['#13a89e', '#6ff0d0'], ['#e0568c', '#ff9ec2'], ['#8a63e0', '#c7a8ff'], ['#e08a2b', '#ffd27a']];
+  function initWeeds() {
+    weeds.length = 0;
+    const r = mulberry(5), n = Math.max(14, Math.round(W / 55));
+    for (let i = 0; i < n; i++) {
+      const c = WEED_COLS[Math.floor(r() * WEED_COLS.length)];
+      weeds.push({ x: (i + r()) / n * W, y: H * (.95 + r() * .06), h: H * (.14 + r() * .3), w: 5 + r() * 7,
+        ph: r() * 6.28, sp: .6 + r() * .6, sway: 10 + r() * 18, col: c, leaves: r() < .55, front: r() < .3 });
+    }
+  }
+  function drawWeeds(t, front) {
+    ctx.lineCap = 'round';
+    for (const k of weeds) {
+      if (k.front !== front) continue;
+      const n = 12; let px = k.x, py = k.y;
+      for (let i = 1; i <= n; i++) {
+        const u = i / n;
+        const x = k.x + Math.sin(t * k.sp + k.ph + u * 2.4) * k.sway * u + Math.sin(t * .5 + k.ph) * 4 * u * u * 4;
+        const y = k.y - u * k.h;
+        ctx.strokeStyle = u > .6 ? k.col[1] : k.col[0];
+        ctx.lineWidth = k.w * (1 - u * .72);
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
+        if (k.leaves && i % 2 === 0 && i < n) {
+          const side = (i / 2) % 2 ? 1 : -1, len = k.w * 3.2 * (1 - u * .4);
+          ctx.fillStyle = k.col[1]; ctx.globalAlpha = .9;
+          ctx.beginPath(); ctx.ellipse(x + side * len * .5, y - len * .25, len * .5, len * .2, side * -.6 + Math.sin(t * k.sp + i) * .2, 0, 7); ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+        px = x; py = y;
+      }
     }
   }
 
@@ -426,7 +528,7 @@
     canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
     S = Math.max(46, Math.min(130, Math.min(W, H) * .13));
     buildScene();
-    initFish();
+    initFish(); initWeeds();
     if (!diver.placed) {
       diver.x = target.x = W * .5; diver.y = target.y = H * .45; diver.placed = true;
     } else {
@@ -477,12 +579,14 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(scene, 0, 0);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    drawWeeds(time, false);
     drawBeams(time);
     drawSpecks(time, dt);
     updateFish(dt);
     drawFish();
     drawBubbles();
     drawDiver(time);
+    drawWeeds(time, true);
 
     requestAnimationFrame(frame);
   }
