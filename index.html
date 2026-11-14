@@ -330,9 +330,20 @@
     // front leg + fin
     leg(-.3, .24, kickA, '#ffd21a');
 
-    // head: hood
-    ctx.fillStyle = '#ffd21a'; ctx.strokeStyle = outline; ctx.lineWidth = lw;
+    // head: panda ears, white face, black eye patches
+    ctx.strokeStyle = '#1a1a22'; ctx.lineWidth = lw;
+    ctx.fillStyle = '#1f1f28';
+    ctx.beginPath(); ctx.arc(.23, -.44, .1, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(.58, -.47, .1, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fafafa'; ctx.strokeStyle = '#3a3a44'; ctx.lineWidth = lw;
     ctx.beginPath(); ctx.arc(.42, -.2, .3, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1f1f28';
+    ctx.beginPath(); ctx.ellipse(.54, -.22, .19, .15, -.15, 0, 7); ctx.fill();
+    // nose
+    ctx.beginPath(); ctx.ellipse(.69, -.07, .05, .035, 0, 0, 7); ctx.fill();
+    // yellow head strap
+    ctx.strokeStyle = '#ffd21a'; ctx.lineWidth = .05;
+    ctx.beginPath(); ctx.arc(.42, -.2, .3, 3.3, 4.5); ctx.stroke();
     // mask
     ctx.fillStyle = '#243447';
     rr(.38, -.34, .34, .25, .1); ctx.fill();
@@ -356,7 +367,7 @@
     ctx.save(); ctx.translate(.1, -.08); ctx.rotate(.9 + wave);
     ctx.fillStyle = '#ffd21a'; ctx.strokeStyle = outline; ctx.lineWidth = lw;
     rr(-.05, -.07, .38, .14, .07); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#ff7a1a'; ctx.beginPath(); ctx.arc(.34, 0, .085, 0, 7); ctx.fill();
+    ctx.fillStyle = '#1f1f28'; ctx.beginPath(); ctx.arc(.34, 0, .09, 0, 7); ctx.fill();
     ctx.restore();
 
     ctx.restore();
